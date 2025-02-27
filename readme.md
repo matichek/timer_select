@@ -2,8 +2,6 @@
 
 A modern, elegant time selection interface with circular wheels for hours and minutes.
 
-![Circular Time Wheel Selector](https://placeholder-for-screenshot.png)
-
 ## Features
 
 - Intuitive circular wheel interface for selecting hours (0-6) and minutes (in 15-minute increments)
