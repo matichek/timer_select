@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular Time Wheel Selector</title>
+    <style>
+        /* Material Design inspired styles */
+        :root {
+            --primary-color: #6200ee;
+            --primary-light: #bb86fc;
+            --primary-dark: #3700b3;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --on-primary: #ffffff;
+            --on-surface: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background);
+            color: var(--on-surface);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            color: var(--on-surface);
+        }
+        
+        .form-field {
+            margin-bottom: 24px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: var(--on-surface);
+        }
+        
+        .wheels-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .wheel-outer {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+        
+        .wheel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--surface);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .hour-wheel-item, .minute-wheel-item {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #f0f0f0;
+            z-index: 1;
+        }
+        
+        .hour-wheel-item.selected, .minute-wheel-item.selected {
+            background-color: var(--primary-light);
+            color: var(--on-primary);
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+            z-index: 2;
+        }
+        
+        .wheel-center {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            z-index: 3;
+        }
+        
+        .wheel-separator {
+            font-size: 30px;
+            font-weight: 300;
+            color: #666;
+        }
+        
+        .time-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .time-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .mat-button {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 4px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            outline: none;
+            margin-top: 16px;
+        }
+
+        .mat-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .wheel-label {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 8px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Time Selector</h1>
+        <div class="form-field">
+            <label for="timeInput">Select Time (15 minute increments)</label>
+            
+            <div class="wheels-container">
+                <!-- Hours Wheel -->
+                <div>
+                    <div class="wheel-outer">
+                        <div class="wheel" id="hoursWheel">
+                            <div class="wheel-center"></div>
+                        </div>
+                    </div>
+                    <div class="wheel-label">Hours (0-6)</div>
+                </div>
+                
+                <div class="wheel-separator">:</div>
+                
+                <!-- Minutes Wheel -->
+                <div>
+                    <div class="wheel-outer">
+                        <div class="wheel" id="minutesWheel">
+                            <div class="wheel-center"></div>
+                        </div>
+                    </div>
+                    <div class="wheel-label">Minutes</div>
+                </div>
+            </div>
+            
+            <input type="text" id="timeInput" class="time-input" readonly>
+        </div>
+        
+        <div class="form-actions">
+            <button class="mat-button" id="submitBtn">Submit</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoursWheel = document.getElementById('hoursWheel');
+            const minutesWheel = document.getElementById('minutesWheel');
+            const timeInput = document.getElementById('timeInput');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            let currentHourIndex = 0;
+            let currentMinuteIndex = 0;
+            let isDragging = false;
+            let startAngle = 0;
+            let currentWheel = null;
+            
+            const hours = Array.from({length: 7}, (_, i) => i.toString().padStart(2, '0'));
+            const minutes = ['00', '15', '30', '45'];
+            
+            const hourItems = [];
+            const minuteItems = [];
+            
+            // Function to update the displayed time
+            function updateTimeInput() {
+                const selectedHour = parseInt(hours[currentHourIndex]);
+                const selectedMinute = parseInt(minutes[currentMinuteIndex]);
+                
+                if (selectedHour === 0 && selectedMinute === 0) {
+                    timeInput.value = "0m";
+                } else if (selectedHour === 0) {
+                    timeInput.value = `${selectedMinute}m`;
+                } else if (selectedMinute === 0) {
+                    timeInput.value = `${selectedHour}h`;
+                } else {
+                    timeInput.value = `${selectedHour}h ${selectedMinute}m`;
+                }
+            }
+            
+            // Function to calculate position on a circle
+            function calculatePosition(index, total, radius) {
+                const angle = (index / total) * 2 * Math.PI - Math.PI / 2; // Start from top
+                return {
+                    x: radius * Math.cos(angle),
+                    y: radius * Math.sin(angle)
+                };
+            }
+            
+            // Function to update hour wheel
+            function updateHourWheel() {
+                hourItems.forEach((item, index) => {
+                    item.classList.toggle('selected', index === currentHourIndex);
+                });
+                updateTimeInput();
+            }
+            
+            // Function to update minute wheel
+            function updateMinuteWheel() {
+                minuteItems.forEach((item, index) => {
+                    item.classList.toggle('selected', index === currentMinuteIndex);
+                });
+                updateTimeInput();
+            }
+            
+            // Create hour wheel items in a circle
+            const hourWheelRadius = 55; // Slightly smaller than wheel radius
+            hours.forEach((hour, index) => {
+                const pos = calculatePosition(index, hours.length, hourWheelRadius);
+                
+                const hourItem = document.createElement('div');
+                hourItem.className = 'hour-wheel-item' + (index === currentHourIndex ? ' selected' : '');
+                hourItem.textContent = hour;
+                hourItem.dataset.index = index;
+                hourItem.style.left = `calc(50% + ${pos.x}px - 20px)`; // 20px is half item width
+                hourItem.style.top = `calc(50% + ${pos.y}px - 20px)`; // 20px is half item height
+                
+                hourItem.addEventListener('click', function() {
+                    currentHourIndex = parseInt(this.dataset.index);
+                    updateHourWheel();
+                });
+                
+                hoursWheel.appendChild(hourItem);
+                hourItems.push(hourItem);
+            });
+            
+            // Create minute wheel items in a circle
+            const minuteWheelRadius = 55;
+            minutes.forEach((minute, index) => {
+                const pos = calculatePosition(index, minutes.length, minuteWheelRadius);
+                
+                const minuteItem = document.createElement('div');
+                minuteItem.className = 'minute-wheel-item' + (index === currentMinuteIndex ? ' selected' : '');
+                minuteItem.textContent = minute;
+                minuteItem.dataset.index = index;
+                minuteItem.style.left = `calc(50% + ${pos.x}px - 20px)`;
+                minuteItem.style.top = `calc(50% + ${pos.y}px - 20px)`;
+                
+                minuteItem.addEventListener('click', function() {
+                    currentMinuteIndex = parseInt(this.dataset.index);
+                    updateMinuteWheel();
+                });
+                
+                minutesWheel.appendChild(minuteItem);
+                minuteItems.push(minuteItem);
+            });
+            
+            // Initialize time input
+            updateTimeInput();
+            
+            // Add rotation gesture for wheels
+            function handleDragStart(e) {
+                e.preventDefault();
+                isDragging = true;
+                currentWheel = this.id === 'hoursWheel' ? 'hours' : 'minutes';
+                
+                const rect = this.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                startAngle = Math.atan2(clientY - centerY, clientX - centerX);
+            }
+            
+            function handleDragMove(e) {
+                if (!isDragging) return;
+                
+                const rect = document.getElementById(currentWheel === 'hours' ? 'hoursWheel' : 'minutesWheel').getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                const currentAngle = Math.atan2(clientY - centerY, clientX - centerX);
+                const angleDiff = currentAngle - startAngle;
+                
+                if (Math.abs(angleDiff) > 0.2) { // Threshold for movement
+                    const total = currentWheel === 'hours' ? 7 : 4;
+                    const direction = angleDiff > 0 ? 
+                        (Math.abs(angleDiff) > Math.PI ? -1 : 1) : 
+                        (Math.abs(angleDiff) > Math.PI ? 1 : -1);
+                    
+                    if (currentWheel === 'hours') {
+                        currentHourIndex = (currentHourIndex + direction + total) % total;
+                        updateHourWheel();
+                    } else {
+                        currentMinuteIndex = (currentMinuteIndex + direction + total) % total;
+                        updateMinuteWheel();
+                    }
+                    
+                    startAngle = currentAngle;
+                }
+            }
+            
+            function handleDragEnd() {
+                isDragging = false;
+                currentWheel = null;
+            }
+            
+            // Add mouse and touch event listeners for both wheels
+            hoursWheel.addEventListener('mousedown', handleDragStart);
+            hoursWheel.addEventListener('touchstart', handleDragStart, { passive: false });
+            
+            minutesWheel.addEventListener('mousedown', handleDragStart);
+            minutesWheel.addEventListener('touchstart', handleDragStart, { passive: false });
+            
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('touchmove', handleDragMove, { passive: false });
+            
+            document.addEventListener('mouseup', handleDragEnd);
+            document.addEventListener('touchend', handleDragEnd);
+            
+            // Handle form submission
+            submitBtn.addEventListener('click', function() {
+                alert(`Selected time: ${timeInput.value}`);
+                // In a real application, you would handle form submission here
+            });
+        });
+    </script>
+</body>
+</html>
