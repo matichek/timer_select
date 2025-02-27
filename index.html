@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Circular Time Wheel Selector</title>
     <style>
-        /* Material Design inspired styles */
+        /* Modern flat design color scheme */
         :root {
-            --primary-color: #6200ee;
-            --primary-light: #bb86fc;
-            --primary-dark: #3700b3;
-            --background: #f5f5f5;
+            --primary-color: #2563eb;
+            --primary-light: #60a5fa;
+            --primary-dark: #1d4ed8;
+            --background: #f8fafc;
             --surface: #ffffff;
             --on-primary: #ffffff;
-            --on-surface: #000000;
+            --on-surface: #0f172a;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.04);
         }
 
         * {
             box-sizing: border-box;
-            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             user-select: none;
         }
 
@@ -27,21 +29,25 @@
             padding: 20px;
             background-color: var(--background);
             color: var(--on-surface);
+            min-height: 100vh;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
             background-color: var(--surface);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px var(--shadow);
+            padding: 32px;
         }
 
         h1 {
             font-size: 24px;
-            margin-top: 0;
+            font-weight: 600;
+            margin-bottom: 32px;
             color: var(--on-surface);
+            text-align: center;
+            letter-spacing: -0.5px;
         }
         
         .form-field {
@@ -51,8 +57,10 @@
         .form-field label {
             display: block;
             margin-bottom: 16px;
-            font-size: 16px;
+            font-size: 14px;
             color: var(--on-surface);
+            opacity: 0.8;
+            font-weight: 500;
         }
         
         .wheels-container {
@@ -65,8 +73,8 @@
         
         .wheel-outer {
             position: relative;
-            width: 150px;
-            height: 150px;
+            width: 200px;
+            height: 200px;
         }
         
         .wheel {
@@ -75,81 +83,90 @@
             height: 100%;
             border-radius: 50%;
             background-color: var(--surface);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            border: 2px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        
+        .wheel:hover {
+            transform: scale(1.02);
         }
         
         .hour-wheel-item, .minute-wheel-item {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
-            background-color: #f0f0f0;
-            z-index: 1;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            color: var(--on-surface);
+            border: 1px solid transparent;
+        }
+        
+        .hour-wheel-item:hover, .minute-wheel-item:hover {
+            background: var(--background);
         }
         
         .hour-wheel-item.selected, .minute-wheel-item.selected {
-            background-color: var(--primary-light);
+            background: var(--primary-color);
             color: var(--on-primary);
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transform: scale(1.1);
-            z-index: 2;
+            font-weight: 500;
         }
         
         .wheel-center {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: var(--primary-color);
             z-index: 3;
         }
         
         .wheel-separator {
-            font-size: 30px;
+            font-size: 24px;
+            color: var(--on-surface);
+            opacity: 0.5;
             font-weight: 300;
-            color: #666;
         }
         
         .time-input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             font-size: 16px;
+            font-weight: 400;
             outline: none;
-            transition: border-color 0.2s;
-            margin-top: 16px;
+            transition: all 0.2s ease;
+            margin-top: 24px;
             text-align: center;
+            color: var(--on-surface);
+            background: var(--surface);
         }
 
         .time-input:focus {
             border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
         }
 
         .mat-button {
             background-color: var(--primary-color);
             color: var(--on-primary);
             border: none;
-            border-radius: 4px;
-            padding: 10px 16px;
+            border-radius: 6px;
+            padding: 12px 24px;
             font-size: 14px;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
             outline: none;
             margin-top: 16px;
         }
@@ -165,11 +182,16 @@
         
         .wheel-label {
             text-align: center;
-            font-size: 14px;
-            margin-top: 8px;
-            color: #666;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--on-surface);
+            opacity: 0.7;
+            margin-top: 12px;
         }
     </style>
+
+    <!-- Replace Google Fonts link with Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
