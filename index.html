@@ -95,7 +95,33 @@
             transform: scale(1.02);
         }
         
-        .hour-wheel-item, .minute-wheel-item {
+        .hour-wheel-item {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            color: var(--on-surface);
+            border: 1px solid transparent;
+        }
+        
+        .hour-wheel-item:hover {
+            background: var(--background);
+        }
+        
+        .hour-wheel-item.selected {
+            background: var(--primary-color);
+            color: var(--on-primary);
+            font-weight: 500;
+        }
+        
+        .minute-wheel-item {
             position: absolute;
             width: 44px;
             height: 44px;
@@ -111,11 +137,11 @@
             border: 1px solid transparent;
         }
         
-        .hour-wheel-item:hover, .minute-wheel-item:hover {
+        .minute-wheel-item:hover {
             background: var(--background);
         }
         
-        .hour-wheel-item.selected, .minute-wheel-item.selected {
+        .minute-wheel-item.selected {
             background: var(--primary-color);
             color: var(--on-primary);
             font-weight: 500;
@@ -340,7 +366,7 @@
                             <div class="wheel-center"></div>
                         </div>
                     </div>
-                    <div class="wheel-label">Hours (0-6)</div>
+                    <div class="wheel-label">Hours (0-7)</div>
                 </div>
                 
                 <div class="wheel-separator">:</div>
@@ -379,7 +405,7 @@
             let startAngle = 0;
             let currentWheel = null;
             
-            const hours = Array.from({length: 7}, (_, i) => i.toString().padStart(2, '0'));
+            const hours = Array.from({length: 8}, (_, i) => i.toString().padStart(2, '0'));
             const minutes = ['00', '15', '30', '45'];
             
             const hourItems = [];
@@ -429,7 +455,7 @@
             }
             
             // Create hour wheel items in a circle
-            const hourWheelRadius = 55; // Slightly smaller than wheel radius
+            const hourWheelRadius = 50;
             hours.forEach((hour, index) => {
                 const pos = calculatePosition(index, hours.length, hourWheelRadius);
                 
@@ -437,8 +463,8 @@
                 hourItem.className = 'hour-wheel-item' + (index === currentHourIndex ? ' selected' : '');
                 hourItem.textContent = hour;
                 hourItem.dataset.index = index;
-                hourItem.style.left = `calc(50% + ${pos.x}px - 20px)`; // 20px is half item width
-                hourItem.style.top = `calc(50% + ${pos.y}px - 20px)`; // 20px is half item height
+                hourItem.style.left = `calc(50% + ${pos.x}px - 18px)`;
+                hourItem.style.top = `calc(50% + ${pos.y}px - 18px)`;
                 
                 hourItem.addEventListener('click', function() {
                     currentHourIndex = parseInt(this.dataset.index);
@@ -500,7 +526,7 @@
                 const angleDiff = currentAngle - startAngle;
                 
                 if (Math.abs(angleDiff) > 0.2) { // Threshold for movement
-                    const total = currentWheel === 'hours' ? 7 : 4;
+                    const total = currentWheel === 'hours' ? 8 : 4;
                     const direction = angleDiff > 0 ? 
                         (Math.abs(angleDiff) > Math.PI ? -1 : 1) : 
                         (Math.abs(angleDiff) > Math.PI ? 1 : -1);
