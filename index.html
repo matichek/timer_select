@@ -188,6 +188,115 @@
             opacity: 0.7;
             margin-top: 12px;
         }
+
+        /* New styles for time input with icon */
+        .input-with-icon {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-with-icon input {
+            width: 100%;
+            padding: 12px 16px;
+            padding-right: 45px; /* Space for the icon */
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.2s ease;
+            color: var(--on-surface);
+            background: var(--surface);
+        }
+
+        .input-with-icon input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-with-icon .icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            color: var(--primary-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .input-with-icon .icon:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Modal styles */
+        .time-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .time-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--on-surface);
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--on-surface);
+            opacity: 0.6;
+            font-size: 24px;
+            line-height: 1;
+            transition: all 0.2s ease;
+        }
+
+        .close-button:hover {
+            opacity: 1;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
     </style>
 
     <!-- Replace Google Fonts link with Inter font -->
@@ -198,6 +307,30 @@
         <h1>Time Selector</h1>
         <div class="form-field">
             <label for="timeInput">Select Time (15 minute increments)</label>
+            
+            <div class="input-with-icon">
+                <input type="text" id="timeInput" placeholder="Click to select time" readonly>
+                <div class="icon" id="clockIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button class="mat-button" id="submitBtn">Submit</button>
+        </div>
+    </div>
+
+    <!-- Time Picker Modal -->
+    <div class="time-modal" id="timeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Select Time</div>
+                <button class="close-button" id="closeModal">×</button>
+            </div>
             
             <div class="wheels-container">
                 <!-- Hours Wheel -->
@@ -223,11 +356,9 @@
                 </div>
             </div>
             
-            <input type="text" id="timeInput" class="time-input" readonly>
-        </div>
-        
-        <div class="form-actions">
-            <button class="mat-button" id="submitBtn">Submit</button>
+            <div class="modal-footer">
+                <button class="mat-button" id="confirmTimeBtn">Confirm</button>
+            </div>
         </div>
     </div>
 
@@ -237,6 +368,10 @@
             const minutesWheel = document.getElementById('minutesWheel');
             const timeInput = document.getElementById('timeInput');
             const submitBtn = document.getElementById('submitBtn');
+            const clockIcon = document.getElementById('clockIcon');
+            const timeModal = document.getElementById('timeModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const confirmTimeBtn = document.getElementById('confirmTimeBtn');
             
             let currentHourIndex = 0;
             let currentMinuteIndex = 0;
@@ -255,15 +390,19 @@
                 const selectedHour = parseInt(hours[currentHourIndex]);
                 const selectedMinute = parseInt(minutes[currentMinuteIndex]);
                 
+                let timeValue;
                 if (selectedHour === 0 && selectedMinute === 0) {
-                    timeInput.value = "0m";
+                    timeValue = "0m";
                 } else if (selectedHour === 0) {
-                    timeInput.value = `${selectedMinute}m`;
+                    timeValue = `${selectedMinute}m`;
                 } else if (selectedMinute === 0) {
-                    timeInput.value = `${selectedHour}h`;
+                    timeValue = `${selectedHour}h`;
                 } else {
-                    timeInput.value = `${selectedHour}h ${selectedMinute}m`;
+                    timeValue = `${selectedHour}h ${selectedMinute}m`;
                 }
+                
+                // Don't update the input yet - only when confirm is pressed
+                return timeValue;
             }
             
             // Function to calculate position on a circle
@@ -280,7 +419,6 @@
                 hourItems.forEach((item, index) => {
                     item.classList.toggle('selected', index === currentHourIndex);
                 });
-                updateTimeInput();
             }
             
             // Function to update minute wheel
@@ -288,7 +426,6 @@
                 minuteItems.forEach((item, index) => {
                     item.classList.toggle('selected', index === currentMinuteIndex);
                 });
-                updateTimeInput();
             }
             
             // Create hour wheel items in a circle
@@ -332,9 +469,6 @@
                 minutesWheel.appendChild(minuteItem);
                 minuteItems.push(minuteItem);
             });
-            
-            // Initialize time input
-            updateTimeInput();
             
             // Add rotation gesture for wheels
             function handleDragStart(e) {
@@ -400,6 +534,37 @@
             
             document.addEventListener('mouseup', handleDragEnd);
             document.addEventListener('touchend', handleDragEnd);
+            
+            // Modal functionality
+            function openModal() {
+                timeModal.classList.add('active');
+            }
+            
+            function closeModal() {
+                timeModal.classList.remove('active');
+            }
+            
+            // Open modal when clicking on the clock icon
+            clockIcon.addEventListener('click', openModal);
+            
+            // Also open when clicking on the input
+            timeInput.addEventListener('click', openModal);
+            
+            // Close modal when clicking the close button
+            closeModalBtn.addEventListener('click', closeModal);
+            
+            // Close modal when clicking outside the modal content
+            timeModal.addEventListener('click', function(e) {
+                if (e.target === timeModal) {
+                    closeModal();
+                }
+            });
+            
+            // Confirm time selection
+            confirmTimeBtn.addEventListener('click', function() {
+                timeInput.value = updateTimeInput();
+                closeModal();
+            });
             
             // Handle form submission
             submitBtn.addEventListener('click', function() {
