@@ -1,0 +1,205 @@
+:host {
+  display: block;
+}
+
+.timer-selector {
+  width: 100%;
+  
+  input {
+    cursor: pointer;
+  }
+}
+
+.timer-wheel-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  
+  .wheel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    
+    .wheel-label {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-color, #333);
+    }
+    
+    .wheel {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      background: var(--surface-ground, #f8f9fa);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      
+      &::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 40px;
+        background: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1);
+        top: calc(50% - 20px);
+        border-radius: 20px;
+        z-index: 0;
+      }
+      
+      .wheel-item {
+        position: absolute;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        font-weight: 500;
+        cursor: pointer;
+        background-color: var(--surface-card, #fff);
+        color: var(--text-color, #333);
+        transition: all 0.2s ease;
+        z-index: 1;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        
+        &:hover {
+          background-color: var(--surface-hover, #f0f0f0);
+          transform: scale(1.05);
+        }
+        
+        &.active {
+          background-color: var(--primary-color, #3B82F6);
+          color: var(--primary-color-text, #fff);
+          transform: scale(1.1);
+          font-weight: 600;
+          box-shadow: 0 3px 8px rgba(var(--primary-color-rgb, 59, 130, 246), 0.4);
+        }
+      }
+    }
+  }
+  
+  // Hour wheel positioning (0-6 hours)
+  .hour-wheel {
+    .wheel {
+      .wheel-item {
+        &:nth-child(1) { // 0 hour
+          transform: translate(0, -40px);
+          
+          &.active {
+            transform: translate(0, -40px) scale(1.1);
+          }
+        }
+        &:nth-child(2) { // 1 hour
+          transform: translate(34px, -20px);
+          
+          &.active {
+            transform: translate(34px, -20px) scale(1.1);
+          }
+        }
+        &:nth-child(3) { // 2 hour
+          transform: translate(40px, 0);
+          
+          &.active {
+            transform: translate(40px, 0) scale(1.1);
+          }
+        }
+        &:nth-child(4) { // 3 hour
+          transform: translate(34px, 20px);
+          
+          &.active {
+            transform: translate(34px, 20px) scale(1.1);
+          }
+        }
+        &:nth-child(5) { // 4 hour
+          transform: translate(0, 40px);
+          
+          &.active {
+            transform: translate(0, 40px) scale(1.1);
+          }
+        }
+        &:nth-child(6) { // 5 hour
+          transform: translate(-34px, 20px);
+          
+          &.active {
+            transform: translate(-34px, 20px) scale(1.1);
+          }
+        }
+        &:nth-child(7) { // 6 hour
+          transform: translate(-40px, 0);
+          
+          &.active {
+            transform: translate(-40px, 0) scale(1.1);
+          }
+        }
+      }
+    }
+  }
+  
+  // Minute wheel positioning (0, 15, 30, 45)
+  .minute-wheel {
+    .wheel {
+      .wheel-item {
+        &:nth-child(1) { // 00 minute
+          transform: translate(0, -40px);
+          
+          &.active {
+            transform: translate(0, -40px) scale(1.1);
+          }
+        }
+        &:nth-child(2) { // 15 minute
+          transform: translate(40px, 0);
+          
+          &.active {
+            transform: translate(40px, 0) scale(1.1);
+          }
+        }
+        &:nth-child(3) { // 30 minute
+          transform: translate(0, 40px);
+          
+          &.active {
+            transform: translate(0, 40px) scale(1.1);
+          }
+        }
+        &:nth-child(4) { // 45 minute
+          transform: translate(-40px, 0);
+          
+          &.active {
+            transform: translate(-40px, 0) scale(1.1);
+          }
+        }
+      }
+    }
+  }
+}
+
+.selected-time-display {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  
+  .selected-time {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color, #333);
+    font-family: monospace;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep {
+  .timer-selector-dialog {
+    .p-dialog-content {
+      padding: 0;
+      overflow: hidden;
+    }
+  }
+} 

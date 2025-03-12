@@ -1,0 +1,86 @@
+<div class="p-inputgroup timer-selector">
+  <input
+    type="text"
+    pInputText
+    [placeholder]="placeholder"
+    [value]="displayValue()"
+    readonly
+    (click)="openTimerDialog()"
+    [disabled]="disabled()"
+  />
+  <button
+    type="button"
+    pButton
+    [icon]="buttonIcon"
+    [class]="buttonClass"
+    (click)="openTimerDialog()"
+    [disabled]="disabled()"
+  ></button>
+</div>
+
+<p-dialog
+  [(visible)]="visible()"
+  [header]="dialogHeader"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="timer-selector-dialog"
+  [style]="{width: '350px'}"
+>
+  <div class="timer-wheel-container">
+    <!-- Hour Wheel -->
+    <div class="wheel-container hour-wheel">
+      <div class="wheel-label">Hour</div>
+      <div class="wheel">
+        @for (hour of hourOptions; track hour) {
+          <div 
+            class="wheel-item" 
+            [class.active]="hours() === hour"
+            (click)="selectHour(hour)"
+          >
+            {{ hour }}
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Minute Wheel -->
+    <div class="wheel-container minute-wheel">
+      <div class="wheel-label">Minute</div>
+      <div class="wheel">
+        @for (minute of minuteOptions; track minute) {
+          <div 
+            class="wheel-item" 
+            [class.active]="minutes() === minute"
+            (click)="selectMinute(minute)"
+          >
+            {{ minute.toString().padStart(2, '0') }}
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="selected-time-display">
+    <span class="selected-time">{{ selectedTime() }}</span>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button 
+        pButton 
+        label="Cancel" 
+        icon="pi pi-times" 
+        class="p-button-text" 
+        (click)="cancelSelection()"
+      ></button>
+      <button 
+        pButton 
+        label="Apply" 
+        icon="pi pi-check" 
+        class="p-button-primary" 
+        (click)="applySelection()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog> 
